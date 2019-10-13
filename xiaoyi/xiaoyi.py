@@ -36,7 +36,6 @@ class Auth(requests.auth.AuthBase):
     def _get_hmac(self, r: requests.PreparedRequest) -> str:
         path = r.path_url
         query = path[path.find("?") + 1 :]
-        query = "&".join(sorted(query.split("&")))
 
         key = "{}&{}".format(self.token, self.token_secret)
 
@@ -54,7 +53,7 @@ class Client(object):
     def login(self, account, encoded_password):
         data = self._get(
             "/v4/users/login",
-            {"account": account, "password": encoded_password},
+            (("account", account), ("password", encoded_password)),
             authenticated=False,
         )
 
@@ -62,17 +61,15 @@ class Client(object):
         self.userid = data["userid"]
 
     def devices(self):
-        data = self._get("/v4/devices/list", {"userid": self.userid})
+        data = self._get("/v4/devices/list", (("userid", self.userid),))
 
         return list(map(lambda entry: Device(self, entry), data))
 
     def _get(self, path, params, authenticated=True):
-        kwargs = {"params": params.copy()}
+        kwargs = {"params": tuple([("seq", 1)] + list(params))}
 
         if authenticated:
             kwargs["auth"] = self.auth
-
-        kwargs["params"].update({"seq": 1})
 
         resp = self.session.get(API_BASE_URL + path, **kwargs).json()
 
