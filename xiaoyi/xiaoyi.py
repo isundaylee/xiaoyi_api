@@ -4,8 +4,10 @@ import hashlib
 import hmac
 import base64
 import json
+import datetime
 
 from .device import Device
+from .alert import Alert
 
 API_BASE_URL = "https://api.us.xiaoyi.com"
 
@@ -67,6 +69,23 @@ class Client(object):
         data = self._get("/v4/devices/list", (("userid", self.userid),))
 
         return list(map(lambda entry: Device(self, entry), data))
+
+    def alerts(self, from_time, to_time, limit=100):
+        data = self._get(
+            "/v2/alert/list",
+            (
+                ("userid", self.userid),
+                ("type", ""),
+                ("sub_type", ""),
+                ("from", int(datetime.datetime.timestamp(from_time))),
+                ("to", int(datetime.datetime.timestamp(to_time))),
+                ("limit", limit),
+                ("fromDB", "True"),
+                ("expires", 1440),
+            ),
+        )
+
+        return list(map(lambda entry: Alert(self, entry), data))
 
     def _get(self, path, params, authenticated=True):
         kwargs = {"params": tuple([("seq", 1)] + list(params))}
