@@ -30,7 +30,10 @@ class Auth(requests.auth.AuthBase):
         self.token_secret = token_secret
 
     def __call__(self, r: requests.PreparedRequest):
-        r.prepare_url(r.url, "hmac={}".format(self._get_hmac(r).replace("=", "%3D")))
+        r.prepare_url(
+            r.url,
+            "hmac={}".format(self._get_hmac(r).replace("=", "%3D").replace("+", "%2B")),
+        )
         return r
 
     def _get_hmac(self, r: requests.PreparedRequest) -> str:
