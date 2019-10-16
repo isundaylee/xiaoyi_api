@@ -19,14 +19,17 @@ class Alert(object):
         self.pic_pwd = data["pic_pwd"]
 
     def get_picture(self):
-        return self._get_and_decrypt(self.pic_urls)
+        return self._get_and_decrypt(self.pic_urls, self.pic_pwd)
 
-    def _get_and_decrypt(self, url):
+    def get_video(self):
+        return self._get_and_decrypt(self.video_urls, self.video_pwd)
+
+    def _get_and_decrypt(self, url, pwd):
         encrypted_data = self.client.session.get(url).content
         encrypted_data = encrypted_data[4:]
 
         backend = cryptography.hazmat.backends.default_backend()
-        key = self.pic_pwd.encode()
+        key = pwd.encode()
         iv = bytes([0] * 16)
         cipher = cryptography.hazmat.primitives.ciphers.Cipher(
             cryptography.hazmat.primitives.ciphers.algorithms.AES(key),
